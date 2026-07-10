@@ -1,26 +1,319 @@
-@import "tailwindcss";
+/* app/globals.css */
+/* Design tokens from design.md — all risk colors, typography, spacing */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens (design.md §2) ─────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Risk state colors */
+  --risk-normal: #2F6B4F;
+  --risk-normal-bg: #EEF5F1;
+  --risk-normal-border: #C4DDD2;
+  --risk-elevated: #B8863B;
+  --risk-elevated-bg: #FBF3E6;
+  --risk-elevated-border: #E8C98A;
+  --risk-high: #A13D3D;
+  --risk-high-bg: #FAF0F0;
+  --risk-high-border: #DCAAA8;
+
+  /* Surface */
+  --bg-base: #F7F5F1;
+  --bg-panel: #FFFFFF;
+  --bg-panel-hover: #FAFAF8;
+
+  /* Text */
+  --ink-primary: #1C1B19;
+  --ink-secondary: #5C5A55;
+  --ink-tertiary: #8B897F;
+
+  /* Accent */
+  --accent-signal: #1F4E5F;
+  --accent-signal-light: #E8F2F6;
+  --accent-signal-dark: #163A47;
+
+  /* Border */
+  --border-subtle: #E4E0D8;
+  --border-medium: #CCC9BF;
+
+  /* Typography scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+
+  /* Spacing (8px base) */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-6: 3rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(28,27,25,0.08), 0 1px 2px rgba(28,27,25,0.04);
+  --shadow-md: 0 4px 12px rgba(28,27,25,0.10), 0 2px 4px rgba(28,27,25,0.06);
+  --shadow-lg: 0 10px 30px rgba(28,27,25,0.12), 0 4px 8px rgba(28,27,25,0.08);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-base: #1C1B19;
+    --bg-panel: #26241F;
+    --bg-panel-hover: #2E2C26;
+    --ink-primary: #F0EDE8;
+    --ink-secondary: #A8A49C;
+    --ink-tertiary: #6B6860;
+    --border-subtle: #3A3730;
+    --border-medium: #4A4740;
+    --accent-signal: #3B8FA8;
+    --accent-signal-light: #1A3040;
+    /* Risk colors brightened for dark mode contrast */
+    --risk-normal: #3D8A63;
+    --risk-normal-bg: #1A2E24;
+    --risk-normal-border: #2A4D38;
+    --risk-elevated: #C99A4F;
+    --risk-elevated-bg: #2E2416;
+    --risk-elevated-border: #5A4020;
+    --risk-high: #C4534F;
+    --risk-high-bg: #2E1A1A;
+    --risk-high-border: #5A2826;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.4);
   }
 }
 
+/* ── Base reset ────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--ink-primary);
+  min-height: 100vh;
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+/* ── Typography utilities ──────────────────────────────────────────────────── */
+.font-mono {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+.text-ink-primary { color: var(--ink-primary); }
+.text-ink-secondary { color: var(--ink-secondary); }
+.text-ink-tertiary { color: var(--ink-tertiary); }
+
+/* ── Risk state utilities (color + icon + text — never color alone) ────────── */
+.risk-badge-normal {
+  background-color: var(--risk-normal-bg);
+  color: var(--risk-normal);
+  border: 1px solid var(--risk-normal-border);
+}
+.risk-badge-elevated {
+  background-color: var(--risk-elevated-bg);
+  color: var(--risk-elevated);
+  border: 1px solid var(--risk-elevated-border);
+}
+.risk-badge-high {
+  background-color: var(--risk-high-bg);
+  color: var(--risk-high);
+  border: 1px solid var(--risk-high-border);
+  animation: pulse-high 2s ease-in-out infinite;
+}
+
+@keyframes pulse-high {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(161,61,61,0); }
+  50% { box-shadow: 0 0 0 4px rgba(161,61,61,0.18); }
+}
+
+/* ── Card / Panel ──────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-medium);
+}
+
+.card-interactive {
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  background: var(--bg-panel-hover);
+}
+
+/* ── Narrative panel (design.md §5) ───────────────────────────────────────── */
+.narrative-panel {
+  border-left: 4px solid var(--accent-signal);
+  background: var(--accent-signal-light);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 20px;
+}
+
+/* ── Signal readout (monospace, design.md §5) ─────────────────────────────── */
+.signal-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: var(--text-sm);
+  color: var(--ink-primary);
+  font-weight: 500;
+}
+
+/* ── Acknowledge button (read-receipt only, never accept/reject) ───────────── */
+.btn-acknowledge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--border-medium);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-acknowledge:hover {
+  border-color: var(--accent-signal);
+  color: var(--accent-signal);
+  background: var(--accent-signal-light);
+}
+
+.btn-acknowledge:focus-visible {
+  outline: 2px solid var(--accent-signal);
+  outline-offset: 2px;
+}
+
+.btn-acknowledge.acknowledged {
+  border-color: var(--risk-normal-border);
+  color: var(--risk-normal);
+  background: var(--risk-normal-bg);
+  cursor: default;
+}
+
+/* ── Primary button ───────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent-signal);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  letter-spacing: 0.01em;
+}
+
+.btn-primary:hover {
+  background: var(--accent-signal-dark);
+  box-shadow: 0 4px 12px rgba(31,78,95,0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--accent-signal);
+  outline-offset: 2px;
+}
+
+/* ── Skeleton loading ─────────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--border-subtle) 25%, var(--bg-panel-hover) 50%, var(--border-subtle) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Error state (calm, never red — design.md §6) ─────────────────────────── */
+.error-state {
+  border: 1px solid var(--border-medium);
+  background: var(--bg-panel);
+  border-radius: 8px;
+  padding: 20px;
+  color: var(--ink-secondary);
+}
+
+/* ── Nav shell ────────────────────────────────────────────────────────────── */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--ink-secondary);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.nav-link:hover {
+  background: var(--accent-signal-light);
+  color: var(--accent-signal);
+}
+
+.nav-link.active {
+  background: var(--accent-signal-light);
+  color: var(--accent-signal);
+  font-weight: 600;
+}
+
+/* ── Certification category ────────────────────────────────────────────────── */
+.cert-met { color: var(--risk-normal); }
+.cert-not-met { color: var(--risk-high); }
+.cert-needs-evidence { color: var(--risk-elevated); }
+
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ink-tertiary); }
+
+/* ── Focus ring ───────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-signal);
+  outline-offset: 2px;
 }

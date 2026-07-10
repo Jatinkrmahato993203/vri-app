@@ -1,0 +1,100 @@
+'use client';
+// components/NarrativePanel.tsx
+// Primary UI element on a zone card — plain-language Gemini-generated text.
+// Deep-teal left border accent distinguishes it from raw data rows (design.md §5).
+// If narrative generation failed, shows "narrative unavailable" with raw signal data (rules.md rule 6).
+
+import { AlertCircle, Clock } from 'lucide-react';
+import type { RiskNarrative, RiskSignal } from '@/types';
+
+interface NarrativePanelProps {
+  narrative: RiskNarrative | null;
+  signal: RiskSignal | null;
+  isLoading?: boolean;
+}
+
+function formatRelativeTime(ts: string): string {
+  const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
+}
+
+export default function NarrativePanel({ narrative, signal, isLoading }: NarrativePanelProps) {
+  if (isLoading) {
+    return (
+      <div className="narrative-panel" style={{ minHeight: 80 }}>
+        <div className="skeleton" style={{ height: 16, marginBottom: 8, width: '85%' }} />
+        <div className="skeleton" style={{ height: 16, width: '60%' }} />
+      </div>
+    );
+  }
+
+  // rules.md rule 6: if narrative generation failed, show raw signal data + label
+  if (!narrative || narrative.generationFailed) {
+    return (
+      <div
+        style={{
+          border: '1px solid var(--border-medium)',
+          borderRadius: 8,
+          padding: '12px 16px',
+          background: 'var(--bg-base)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            color: 'var(--ink-secondary)',
+            fontSize: 13,
+            marginBottom: 8,
+          }}
+        >
+          <AlertCircle size={14} aria-hidden="true" />
+          <span>narrative unavailable</span>
+        </div>
+        {signal && (
+          <div style={{ fontSize: 12, color: 'var(--ink-secondary)', fontFamily: 'IBM Plex Mono, monospace' }}>
+            {signal.heatIndex !== null && <span>heat: {signal.heatIndex}°C · </span>}
+            {signal.crowdDensity !== null && <span>density: {Math.round(signal.crowdDensity * 100)}% · </span>}
+            {signal.egressUtilization !== null && <span>egress: {Math.round(signal.egressUtilization * 100)}%</span>}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="narrative-panel" role="region" aria-label="Risk narrative">
+      <p
+        style={{
+          margin: 0,
+          fontSize: 15,
+          lineHeight: 1.65,
+          color: 'var(--ink-primary)',
+          fontWeight: 400,
+        }}
+      >
+        {narrative.narrativeText}
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          marginTop: 10,
+          color: 'var(--ink-tertiary)',
+          fontSize: 12,
+        }}
+      >
+        <Clock size={11} aria-hidden="true" />
+        <span>Updated {formatRelativeTime(narrative.timestamp)}</span>
+        <span style={{ opacity: 0.5 }}>·</span>
+        <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 10 }}>
+          {narrative.generatedBy}
+        </span>
+      </div>
+    </div>
+  );
+}
