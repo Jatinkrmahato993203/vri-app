@@ -3,7 +3,7 @@
 // Expanded zone view: full narrative paragraph, 3 signal readouts with sparklines,
 // and the "Mark reviewed" acknowledge button (read-receipt only — NEVER accept/reject).
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { X, CheckCheck } from 'lucide-react';
 import RiskBadge from './RiskBadge';
 import NarrativePanel from './NarrativePanel';
@@ -21,6 +21,29 @@ interface ZoneDetailProps {
 export default function ZoneDetail({ zone, signal, narrative, history, onClose }: ZoneDetailProps) {
   // Track acknowledge state locally — it's a read-receipt, not a recommendation response
   const [acknowledged, setAcknowledged] = useState(false);
+  const [ackPending, setAckPending] = useState(false);
+
+  // Fix #5: persist acknowledgement to /api/acknowledgements, not just local state
+  const handleAcknowledge = useCallback(async () => {
+    setAckPending(true);
+    try {
+      await fetch('/api/acknowledgements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zoneId: zone.id,
+          venueId: zone.venueId,
+          signalSnapshotId: signal?.id ?? 'unknown',
+          riskLevelAtAck: signal?.riskLevel ?? 'normal',
+        }),
+      });
+    } catch {
+      // Best-effort — local state still updates so UI isn't broken offline
+    } finally {
+      setAcknowledged(true);
+      setAckPending(false);
+    }
+  }, [zone.id, zone.venueId, signal]);
 
   return (
     <div
@@ -179,12 +202,12 @@ export default function ZoneDetail({ zone, signal, narrative, history, onClose }
             <button
               id={`acknowledge-${zone.id}`}
               className={`btn-acknowledge${acknowledged ? ' acknowledged' : ''}`}
-              onClick={() => setAcknowledged(true)}
-              disabled={acknowledged}
+              onClick={handleAcknowledge}
+              disabled={acknowledged || ackPending}
               aria-label={acknowledged ? 'Already marked as reviewed' : 'Mark this risk narrative as reviewed'}
             >
               <CheckCheck size={14} aria-hidden="true" />
-              {acknowledged ? 'Marked reviewed' : 'Mark reviewed'}
+              {ackPending ? 'Saving…' : acknowledged ? 'Marked reviewed' : 'Mark reviewed'}
             </button>
           </div>
         </div>

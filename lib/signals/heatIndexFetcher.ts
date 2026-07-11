@@ -31,7 +31,6 @@ export async function fetchHeatData(
     if (!current) return null;
 
     const tempC: number = current.temperature_2m ?? 28;
-    const humidity: number = current.relativehumidity_2m ?? 50;
     const apparentTemp: number = current.apparent_temperature ?? tempC;
 
     // Heat index: use apparent temperature (already accounts for humidity)

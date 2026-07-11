@@ -96,6 +96,8 @@ export interface Acknowledgement {
   venueId: string;
   zoneId: string;
   narrativeId: string;
+  signalSnapshotId: string;   // audit trail — which signal was current at time of ack
+  riskLevelAtAck: RiskLevel; // audit trail — captures the risk level seen by the reviewer
   timestamp: string;
 }
 

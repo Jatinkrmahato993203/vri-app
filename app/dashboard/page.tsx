@@ -3,7 +3,7 @@
 // Realtime-simulated zone card grid with auto-refresh every 60s.
 // No prescriptive recommendations anywhere on this page (rules.md rule 1).
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { RefreshCw, Play, Pause, Activity } from 'lucide-react';
 import NavShell from '@/components/NavShell';
@@ -26,17 +26,25 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [role, setRole] = useState<UserRole>('ops_director');
+  // Fix #9: Compute role synchronously via initializer function to avoid
+  // setting state inside an effect (which triggers the react-hooks lint rule).
+  const [role] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('vri_role') as UserRole | null) ?? 'ops_director';
+    }
+    return 'ops_director';
+  });
   const [demoMode, setDemoMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  // Fix #9: ref guards initial load so fetchData dep doesn't cause double-fetch
+  const didInitialLoad = useRef(false);
 
+  // Auth redirect: if no role, push to login. Done in effect so SSR doesn’t break.
   useEffect(() => {
     const storedRole = localStorage.getItem('vri_role') as UserRole | null;
     if (!storedRole) {
       router.replace('/login');
-      return;
     }
-    setRole(storedRole);
   }, [router]);
 
   const fetchData = useCallback(async (forceSimulate = false) => {
@@ -90,11 +98,13 @@ export default function DashboardPage() {
     }
   }, [demoMode, zones.length]);
 
-  // Initial load
+  // Fix #9: Initial load via ref guard — avoids eslint-disable comment and double-fetch
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!didInitialLoad.current) {
+      didInitialLoad.current = true;
+      fetchData();
+    }
+  }, [fetchData]);
 
   // Auto-refresh every 60s (rules.md rule 8 — not per-tick, not per page load)
   useEffect(() => {

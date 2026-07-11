@@ -11,7 +11,8 @@ import { getLatestSignalForZone } from '@/lib/store/memoryStore';
 // ── Thresholds (deterministic classification — not LLM) ───────────────────────
 // rules.md rule 2: risk classification must be auditable and reproducible.
 
-function classifyRiskLevel(
+// Fix #13: exported for direct unit testing — these are the core trust-critical functions
+export function classifyRiskLevel(
   heatIndex: number | null,
   crowdDensity: number | null,
   egressUtilization: number | null
@@ -25,7 +26,7 @@ function classifyRiskLevel(
   return 'normal';
 }
 
-function computeTrend(
+export function computeTrend(
   current: { heatIndex: number | null; crowdDensity: number | null; egressUtilization: number | null },
   previous: RiskSignal | null
 ): Trend {

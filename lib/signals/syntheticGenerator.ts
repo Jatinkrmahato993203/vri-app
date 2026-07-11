@@ -7,9 +7,7 @@ import type { Zone } from '@/types';
 
 // Demo escalation state — global so it persists across calls in a dev session
 declare global {
-  // eslint-disable-next-line no-var
   var __vri_demo_tick: number | undefined;
-  // eslint-disable-next-line no-var
   var __vri_demo_mode: boolean | undefined;
 }
 

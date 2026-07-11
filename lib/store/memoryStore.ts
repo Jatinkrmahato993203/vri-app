@@ -33,7 +33,6 @@ interface Store {
 
 // Global singleton — survives hot reloads in dev via globalThis
 declare global {
-  // eslint-disable-next-line no-var
   var __vri_store: Store | undefined;
 }
 
@@ -146,6 +145,13 @@ export function getLatestAuditForVenue(venueId: string): CertificationAudit | un
 
 export function getBenchmarkAggregates(): BenchmarkAggregate[] {
   return [...getStore().benchmarkAggregates.values()];
+}
+
+// Fix #5: retrieve acknowledgements for a venue (optionally filtered by zone)
+export function getAcknowledgements(venueId: string, zoneId?: string): Acknowledgement[] {
+  return [...getStore().acknowledgements.values()].filter(
+    (a) => a.venueId === venueId && (!zoneId || a.zoneId === zoneId)
+  );
 }
 
 export function isInitialized(): boolean {

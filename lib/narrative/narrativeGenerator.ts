@@ -102,12 +102,14 @@ Summarize this risk state in 1–3 sentences for an operations professional.`;
 
   try {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    // Try newer model names — fall back to mock on any error
+    // Current supported models — ordered fastest/cheapest first (verify at https://ai.google.dev/gemini-api/docs/models)
+    // Fix #1: updated from discontinued model list
     const MODELS_TO_TRY = [
-      'gemini-2.0-flash-lite',
+      'gemini-2.5-flash-lite',
+      'gemini-2.5-flash',
+      'gemini-3.5-flash',
+      'gemini-3.1-flash-lite',
       'gemini-2.0-flash',
-      'gemini-1.5-flash-latest',
-      'gemini-1.5-flash',
     ];
     let narrativeText: string | null = null;
     let succeededModel = 'gemini-unknown';
@@ -139,18 +141,18 @@ Summarize this risk state in 1–3 sentences for an operations professional.`;
       generationFailed: false,
     };
   } catch (err) {
-    // Fail loudly — never show stale or fabricated content (rules.md rule 6)
-    console.error('[NarrativeGenerator] Gemini call failed:', err);
-    // Fall back to rule-based mock so the UI still has something real to show
+    // Fix #2: Set generationFailed:true when the real Gemini call failed — fail loudly per rules.md rule 6.
+    // The UI must show "narrative unavailable" + raw signal data, not silently serve a template sentence.
+    console.error('[NarrativeGenerator] Gemini call failed (all models exhausted):', err);
     return {
       id,
       venueId: signal.venueId,
       zoneId: signal.zoneId,
       timestamp,
       signalSnapshotId: signal.id,
-      narrativeText: buildMockNarrative(signal, zoneName),
+      narrativeText: buildMockNarrative(signal, zoneName), // kept for raw-data display in UI
       generatedBy: 'mock-rules-v1-fallback',
-      generationFailed: false,
+      generationFailed: true, // FIX #2: was incorrectly false — Gemini DID fail
     };
   }
 }

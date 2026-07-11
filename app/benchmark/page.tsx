@@ -64,7 +64,12 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 
 export default function BenchmarkPage() {
   const router = useRouter();
-  const [role, setRole] = useState<UserRole>('insurer');
+  const [role] = useState<UserRole>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('vri_role') as UserRole | null) ?? 'insurer';
+    }
+    return 'insurer';
+  });
   const [data, setData] = useState<BenchmarkPoint[]>([]);
   const [activeHazard, setActiveHazard] = useState<HazardType | 'all'>('all');
   const [loading, setLoading] = useState(true);
@@ -72,8 +77,9 @@ export default function BenchmarkPage() {
 
   useEffect(() => {
     const storedRole = localStorage.getItem('vri_role') as UserRole | null;
-    if (!storedRole) { router.replace('/login'); return; }
-    setRole(storedRole);
+    if (!storedRole) {
+      router.replace('/login');
+    }
   }, [router]);
 
   useEffect(() => {
